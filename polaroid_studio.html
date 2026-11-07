@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polaroid Studio | Vintage Photo Maker</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts for Handwritten Signatures & Retro Stamps -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Dancing+Script:wght@500;700&family=Indie+Flower&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,600;1,400&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            caveat: ['Caveat', 'cursive'],
+            marker: ['"Permanent Marker"', 'cursive'],
+            indie: ['"Indie Flower"', 'cursive'],
+            dancing: ['"Dancing Script"', 'cursive'],
+            mono: ['"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            creamy: '#fbf8f3',
+            polaroid: {
+              white: '#fcfbfa',
+              cream: '#f5edd6',
+              charcoal: '#1a1a1a',
+              pink: '#fce7eb',
+              mint: '#e6f4ea',
+              blue: '#e8f0fe'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Paper Texture & Depth */
+    .polaroid-shadow {
+      box-shadow: 
+        0 20px 35px -10px rgba(0, 0, 0, 0.22),
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 0 1px 1px rgba(255, 255, 255, 0.6);
+    }
+    .polaroid-texture {
+      background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0);
+      background-size: 8px 8px;
+    }
+    
+    /* Washi Tape Styles */
+    .washi-tape {
+      background: rgba(235, 215, 175, 0.78);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      border-left: 2px dashed rgba(0, 0, 0, 0.1);
+      border-right: 2px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    /* Film Filters via CSS Filter */
+    .filter-original { filter: none; }
+    .filter-warm { filter: sepia(0.22) contrast(1.08) brightness(1.04) saturate(1.25); }
+    .filter-film90 { filter: contrast(1.18) brightness(0.96) saturate(1.3) hue-rotate(-8deg); }
+    .filter-bw { filter: grayscale(1) contrast(1.2) brightness(0.95); }
+    .filter-sepia { filter: sepia(0.7) contrast(0.95) brightness(0.95) hue-rotate(-15deg); }
+    .filter-cool { filter: saturate(0.9) hue-rotate(185deg) brightness(1.03); }
+    .filter-moody { filter: contrast(1.3) brightness(0.85) saturate(1.1); }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1ede6;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cfc4b4;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+
+<body class="bg-[#f2efe9] text-gray-800 font-sans min-h-screen flex flex-col selection:bg-amber-200">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-400 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
+        <i data-lucide="camera" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="text-base sm:text-lg font-bold tracking-tight text-stone-900 flex items-center gap-1.5">
+          Polaroid<span class="text-amber-600 font-serif italic">Studio</span>
+        </h1>
+        <p class="text-[11px] text-stone-500">Handmade retro photo & device creator</p>
+      </div>
+    </div>
+
+    <!-- Quick action buttons -->
+    <div class="flex items-center space-x-2">
+      <button onclick="resetToSample()" class="px-3 py-1.5 text-xs font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors flex items-center space-x-1.5">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline">Reset</span>
+      </button>
+      <button onclick="copyToClipboard()" id="copy-btn" class="px-3.5 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-all flex items-center space-x-1.5">
+        <i data-lucide="clipboard-copy" class="w-3.5 h-3.5"></i>
+        <span>Copy Image</span>
+      </button>
+      <button onclick="downloadPolaroid()" class="px-4 py-1.5 text-xs font-semibold text-white bg-stone-900 hover:bg-black rounded-lg shadow-sm hover:shadow transition-all flex items-center space-x-1.5">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        <span>Save Polaroid</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT PANEL: CONTROLS & SETTINGS (5 COLS) -->
+    <aside class="lg:col-span-5 space-y-6 order-2 lg:order-1">
+      
+      <!-- 1. PHOTO SOURCE & UPLOAD -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+            <i data-lucide="image-plus" class="w-4 h-4 text-amber-600"></i>
+            1. Photo Source
+          </h2>
+          <span class="text-[11px] text-stone-400">JPG, PNG, WEBP</span>
+        </div>
+
+        <!-- Dropzone / Picker -->
+        <label for="image-upload" class="group relative flex flex-col items-center justify-center border-2 border-dashed border-stone-300 hover:border-amber-500 rounded-xl p-4 cursor-pointer bg-stone-50 hover:bg-amber-50/40 transition-all">
+          <i data-lucide="upload-cloud" class="w-7 h-7 text-stone-400 group-hover:text-amber-600 transition-colors mb-1.5"></i>
+          <span class="text-xs font-medium text-stone-700">Click to upload or drag photo here</span>
+          <span class="text-[11px] text-stone-400 mt-0.5">High resolution recommended</span>
+          <input type="file" id="image-upload" accept="image/*" class="hidden">
+        </label>
+
+        <!-- Sample Presets -->
+        <div class="mt-3.5">
+          <span class="text-[11px] font-medium text-stone-500 block mb-2">Or test with vintage presets:</span>
+          <div class="grid grid-cols-4 gap-2" id="preset-container">
+            <!-- Populated dynamically with sample photos -->
+          </div>
+        </div>
+
+        <!-- Position & Zoom Slider -->
+        <div class="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between gap-3 text-xs">
+          <span class="text-stone-600 flex items-center gap-1">
+            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-stone-400"></i> Zoom
+          </span>
+          <input type="range" id="zoom-slider" min="1" max="2.5" step="0.02" value="1" class="flex-1 accent-stone-800 cursor-pointer">
+          <span id="zoom-value" class="text-[11px] text-stone-400 font-mono w-9 text-right">100%</span>
+        </div>
+        <p class="text-[11px] text-stone-400 italic mt-1.5">Tip: Drag the photo in the frame to reposition!</p>
+      </div>
+
+      <!-- 2. NAME & DEVICE CAPTIONS -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+          <i data-lucide="pen-tool" class="w-4 h-4 text-amber-600"></i>
+          2. Handwritten Name & Device
+        </h2>
+
+        <!-- Name / Main Caption -->
+        <div>
+          <label class="block text-xs font-medium text-stone-700 mb-1">Name or Caption</label>
+          <input type="text" id="caption-input" value="Golden Hour in Kyoto" placeholder="e.g. Maya & Lucas · Venice" 
+                 class="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500">
+        </div>
+
+        <!-- Font Style & Ink Color -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Handwriting Font</label>
+            <select id="font-select" class="w-full px-2.5 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500 bg-white">
+              <option value="font-caveat">Caveat (Ballpoint Pen)</option>
+              <option value="font-marker">Permanent Marker</option>
+              <option value="font-indie">Indie Flower (Cursive)</option>
+              <option value="font-dancing">Dancing Script (Elegant)</option>
+              <option value="font-sans">Minimal Clean Sans</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Ink Tone</label>
+            <div class="flex items-center space-x-1.5 pt-1" id="ink-swatches">
+              <button data-ink="#1a1a1a" class="ink-btn w-6 h-6 rounded-full bg-[#1a1a1a] ring-2 ring-offset-2 ring-amber-500 transition-all"></button>
+              <button data-ink="#2b3a67" class="ink-btn w-6 h-6 rounded-full bg-[#2b3a67] transition-all"></button>
+              <button data-ink="#4a3728" class="ink-btn w-6 h-6 rounded-full bg-[#4a3728] transition-all"></button>
+              <button data-ink="#731d1d" class="ink-btn w-6 h-6 rounded-full bg-[#731d1d] transition-all"></button>
+              <button data-ink="#44403c" class="ink-btn w-6 h-6 rounded-full bg-[#44403c] transition-all"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device Info / Shot-on -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-medium text-stone-700">Device / Camera Stamp</label>
+            <label class="flex items-center space-x-1 cursor-pointer">
+              <input type="checkbox" id="device-toggle" checked class="accent-stone-800 w-3.5 h-3.5 rounded">
+              <span class="text-[11px] text-stone-500">Show Badge</span>
+            </label>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <select id="device-preset" class="w-full px-2.5 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500 bg-white">
+              <option value="Shot on iPhone 16 Pro">Shot on iPhone 16 Pro</option>
+              <option value="Shot on Fujifilm X100VI">Shot on Fujifilm X100VI</option>
+              <option value="Shot on Leica Q3">Shot on Leica Q3</option>
+              <option value="Shot on Canon EOS R6">Shot on Canon EOS R6</option>
+              <option value="Shot on Sony A7 IV">Shot on Sony A7 IV</option>
+              <option value="Shot on Polaroid 600">Shot on Polaroid 600 Film</option>
+              <option value="custom">Custom Device...</option>
+            </select>
+            <input type="text" id="custom-device-input" placeholder="Type device name..." 
+                   class="hidden w-full px-3 py-2 text-xs rounded-xl border border-stone-200 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <!-- Optional Vintage Orange Date Stamp -->
+        <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+          <div>
+            <span class="text-xs font-medium text-stone-700 block">Digital Date Stamp</span>
+            <span class="text-[11px] text-stone-400">90s Camcorder date in corner</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="date" id="date-picker" class="text-xs px-2 py-1 border border-stone-200 rounded-lg">
+            <input type="checkbox" id="date-toggle" checked class="accent-amber-600 w-4 h-4 rounded">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. FRAME STYLE & FILM FILTERS -->
+      <div class="bg-white rounded-2xl p-5 border border-stone-200 shadow-sm space-y-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+          <i data-lucide="palette" class="w-4 h-4 text-amber-600"></i>
+          3. Frame Color & Film Filters
+        </h2>
+
+        <!-- Film Filters -->
+        <div>
+          <label class="block text-xs font-medium text-stone-700 mb-2">Film Emulation Filter</label>
+          <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5 text-center text-[10px]" id="filter-buttons">
+            <button data-filter="filter-original" class="filter-opt py-1.5 px-1 rounded-lg border border-amber-500 bg-amber-50 font-medium">Natural</button>
+            <button data-filter="filter-warm" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">Warm</button>
+            <button data-filter="filter-film90" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">90s Pop</button>
+            <button data-filter="filter-bw" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">Mono</button>
+            <button data-filter="filter-sepia" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">Sepia</button>
+            <button data-filter="filter-cool" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">Cool</button>
+            <button data-filter="filter-moody" class="filter-opt py-1.5 px-1 rounded-lg border border-stone-200 hover:bg-stone-50">Moody</button>
+          </div>
+        </div>
+
+        <!-- Frame Paper Color -->
+        <div>
+          <label class="block text-xs font-medium text-stone-700 mb-2">Polaroid Frame Paper</label>
+          <div class="flex items-center space-x-2" id="frame-color-swatches">
+            <button data-color="#fcfbfa" data-text-dark="true" title="Classic White" class="frame-color-btn w-8 h-8 rounded-full border border-stone-300 bg-[#fcfbfa] ring-2 ring-offset-2 ring-amber-500 shadow-sm transition-all"></button>
+            <button data-color="#f5edd6" data-text-dark="true" title="Vintage Cream" class="frame-color-btn w-8 h-8 rounded-full border border-stone-300 bg-[#f5edd6] shadow-sm transition-all"></button>
+            <button data-color="#1f1f1f" data-text-dark="false" title="Charcoal Noir" class="frame-color-btn w-8 h-8 rounded-full border border-stone-600 bg-[#1f1f1f] shadow-sm transition-all"></button>
+            <button data-color="#fce7eb" data-text-dark="true" title="Pastel Rose" class="frame-color-btn w-8 h-8 rounded-full border border-stone-300 bg-[#fce7eb] shadow-sm transition-all"></button>
+            <button data-color="#e6f4ea" data-text-dark="true" title="Sage Mint" class="frame-color-btn w-8 h-8 rounded-full border border-stone-300 bg-[#e6f4ea] shadow-sm transition-all"></button>
+            <button data-color="#e8f0fe" data-text-dark="true" title="Sky Mist" class="frame-color-btn w-8 h-8 rounded-full border border-stone-300 bg-[#e8f0fe] shadow-sm transition-all"></button>
+          </div>
+        </div>
+
+        <!-- Frame Format / Aspect Ratio & Washi Tape -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <div>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Polaroid Type</label>
+            <select id="format-select" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 bg-white">
+              <option value="classic">Classic 600 (Square)</option>
+              <option value="tall">Instax Mini (Portrait)</option>
+              <option value="wide">Instax Wide (Landscape)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-stone-700 mb-1">Top Washi Tape</label>
+            <select id="tape-select" class="w-full px-2.5 py-1.5 text-xs rounded-xl border border-stone-200 bg-white">
+              <option value="tape-craft">Craft Paper Tape</option>
+              <option value="tape-gold">Vintage Gold</option>
+              <option value="tape-masking">Masking Tape</option>
+              <option value="none">None (Clean)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: LIVE POLAROID DESK PREVIEW (7 COLS) -->
+    <section class="lg:col-span-7 flex flex-col items-center justify-center order-1 lg:order-2 sticky lg:top-24">
+      
+      <!-- Studio Board Area -->
+      <div class="w-full bg-[#e8e4dc] rounded-3xl p-6 sm:p-10 border border-stone-300/80 shadow-inner flex flex-col items-center justify-center min-h-[540px] relative overflow-hidden">
+        
+        <!-- Subtle Wood/Linen Ambient Background Grid -->
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#948c7d_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+
+        <!-- POLAROID FRAME ELEMENT (TARGET FOR CAPTURE) -->
+        <div id="polaroid-card" class="relative bg-polaroid-white polaroid-shadow polaroid-texture p-4 sm:p-5 rounded-sm transition-all duration-300 transform hover:rotate-0 rotate-[-1deg] select-none max-w-[340px] sm:max-w-[380px] w-full">
+          
+          <!-- Decorative Top Tape -->
+          <div id="washi-tape-strip" class="washi-tape absolute -top-3.5 left-1/2 -translate-x-1/2 w-28 h-7 z-20 transform -rotate-1 pointer-events-none"></div>
+
+          <!-- PHOTO DISPLAY BOX (DRAGGABLE / CLIPPED) -->
+          <div id="photo-box" class="relative overflow-hidden bg-stone-900 aspect-square w-full rounded-[2px] cursor-grab active:cursor-grabbing border border-black/10">
+            
+            <!-- Draggable Photo Image -->
+            <img id="polaroid-photo" 
+                 src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80" 
+                 alt="Polaroid subject" 
+                 crossorigin="anonymous"
+                 class="w-full h-full object-cover select-none pointer-events-auto filter-original transition-filter duration-200 origin-center"
+                 draggable="false">
+
+            <!-- Retro Orange Timestamp (Top/Bottom Right Overlay) -->
+            <div id="date-stamp" class="absolute bottom-2.5 right-2.5 font-mono text-[#ff8c00] text-xs font-bold tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] pointer-events-none">
+              '24 10 18
+            </div>
+
+            <!-- Drag Instruction tooltip -->
+            <div id="drag-hint" class="absolute top-2 left-2 bg-black/50 text-white text-[9px] px-2 py-0.5 rounded backdrop-blur-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              <i data-lucide="move" class="w-3 h-3 inline"></i> Drag to pan
+            </div>
+          </div>
+
+          <!-- BOTTOM CHIN (NAME + DEVICE INFO) -->
+          <div id="bottom-chin" class="pt-5 pb-3 px-2 flex flex-col justify-between items-center text-center">
+            
+            <!-- Handwritten Name / Caption -->
+            <div id="polaroid-text" class="font-caveat text-2xl sm:text-3xl text-stone-900 tracking-wide break-words max-w-full leading-tight min-h-[36px] flex items-center justify-center">
+              Golden Hour in Kyoto
+            </div>
+
+            <!-- Device Badge and Sub-Info -->
+            <div id="device-badge" class="mt-2.5 flex items-center justify-center space-x-1.5 text-[11px] font-sans font-medium text-stone-600/85 tracking-tight border-t border-stone-200/50 pt-2 w-full">
+              <i data-lucide="camera" class="w-3 h-3 text-stone-500 inline"></i>
+              <span id="device-label">Shot on iPhone 16 Pro</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desk Controls / Quick Helpers -->
+        <div class="mt-6 flex items-center space-x-4 text-xs text-stone-500 z-10">
+          <span class="flex items-center gap-1">
+            <i data-lucide="hand" class="w-3.5 h-3.5"></i> Click & drag image to reposition
+          </span>
+          <span>•</span>
+          <span class="flex items-center gap-1">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i> Print Ready (300DPI)
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick Tips Bar -->
+      <div class="mt-4 w-full flex items-center justify-between text-xs text-stone-500 px-2">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> 100% Client-Side Render (Instant & Private)
+        </span>
+        <button onclick="downloadPolaroid('jpeg')" class="hover:text-stone-800 underline decoration-stone-300">
+          Download as JPEG
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FEEDBACK TOAST -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-stone-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs flex items-center space-x-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i data-lucide="check" class="w-4 h-4 text-amber-400"></i>
+    <span id="toast-message">Success!</span>
+  </div>
+
+  <!-- HIDDEN EXPORT CANVAS -->
+  <canvas id="export-canvas" class="hidden"></canvas>
+
+  <!-- APP JAVASCRIPT -->
+  <script>
+    // State Management
+    const state = {
+      imageSrc: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80",
+      caption: "Golden Hour in Kyoto",
+      fontClass: "font-caveat",
+      inkColor: "#1a1a1a",
+      deviceText: "Shot on iPhone 16 Pro",
+      showDevice: true,
+      filter: "filter-original",
+      frameColor: "#fcfbfa",
+      frameTextDark: true,
+      format: "classic",
+      tape: "tape-craft",
+      showDate: true,
+      dateString: "'24 10 18",
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0
+    };
+
+    // Sample Photos for quick testing
+    const samplePhotos = [
+      { thumb: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=200&q=60", full: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=85", title: "Lake" },
+      { thumb: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=60", full: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=85", title: "Portrait" },
+      { thumb: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=200&q=60", full: "https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1200&q=85", title: "Neon City" },
+      { thumb: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=200&q=60", full: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=85", title: "Misty Fog" }
+    ];
+
+    // DOM Elements
+    const photoEl = document.getElementById('polaroid-photo');
+    const photoBox = document.getElementById('photo-box');
+    const polaroidCard = document.getElementById('polaroid-card');
+    const captionEl = document.getElementById('polaroid-text');
+    const deviceBadgeEl = document.getElementById('device-badge');
+    const deviceLabelEl = document.getElementById('device-label');
+    const dateStampEl = document.getElementById('date-stamp');
+    const washiTapeEl = document.getElementById('washi-tape-strip');
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomValEl = document.getElementById('zoom-value');
+    const datePicker = document.getElementById('date-picker');
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      // Set today's date into picker
+      const today = new Date();
+      datePicker.value = today.toISOString().split('T')[0];
+      formatDateStamp(today);
+
+      renderPresets();
+      bindEvents();
+      updateDOM();
+      lucide.createIcons();
+    });
+
+    // Populate Sample Presets
+    function renderPresets() {
+      const container = document.getElementById('preset-container');
+      container.innerHTML = '';
+      samplePhotos.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = "aspect-square rounded-lg overflow-hidden border border-stone-200 hover:border-amber-500 hover:scale-105 transition-all";
+        btn.innerHTML = `<img src="${p.thumb}" alt="${p.title}" class="w-full h-full object-cover">`;
+        btn.onclick = () => {
+          state.imageSrc = p.full;
+          state.panX = 0;
+          state.panY = 0;
+          state.zoom = 1;
+          zoomSlider.value = 1;
+          zoomValEl.textContent = "100%";
+          photoEl.src = p.full;
+          updateTransform();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // Format Vintage Timestamp: "'YY MM DD"
+    function formatDateStamp(dateObj) {
+      const year = String(dateObj.getFullYear()).slice(-2);
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      state.dateString = `'${year} ${month} ${day}`;
+      dateStampEl.textContent = state.dateString;
+    }
+
+    // Event Bindings
+    function bindEvents() {
+      // Image Upload
+      document.getElementById('image-upload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            state.imageSrc = event.target.result;
+            photoEl.src = state.imageSrc;
+            state.panX = 0;
+            state.panY = 0;
+            state.zoom = 1;
+            zoomSlider.value = 1;
+            zoomValEl.textContent = "100%";
+            updateTransform();
+            showToast("Photo uploaded successfully!");
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Zoom slider
+      zoomSlider.addEventListener('input', (e) => {
+        state.zoom = parseFloat(e.target.value);
+        zoomValEl.textContent = `${Math.round(state.zoom * 100)}%`;
+        updateTransform();
+      });
+
+      // Drag to Pan
+      photoBox.addEventListener('mousedown', startDrag);
+      window.addEventListener('mousemove', drag);
+      window.addEventListener('mouseup', endDrag);
+
+      photoBox.addEventListener('touchstart', (e) => startDrag(e.touches[0]));
+      window.addEventListener('touchmove', (e) => {
+        if (state.isDragging) {
+          drag(e.touches[0]);
+          e.preventDefault();
+        }
+      }, { passive: false });
+      window.addEventListener('touchend', endDrag);
+
+      // Text Input
+      document.getElementById('caption-input').addEventListener('input', (e) => {
+        state.caption = e.target.value || " ";
+        captionEl.textContent = state.caption;
+      });
+
+      // Font Style Picker
+      document.getElementById('font-select').addEventListener('change', (e) => {
+        captionEl.classList.remove(state.fontClass);
+        state.fontClass = e.target.value;
+        captionEl.classList.add(state.fontClass);
+      });
+
+      // Ink Swatches
+      document.querySelectorAll('.ink-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.ink-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-2', 'ring-amber-500'));
+          btn.classList.add('ring-2', 'ring-offset-2', 'ring-amber-500');
+          state.inkColor = btn.dataset.ink;
+          captionEl.style.color = state.inkColor;
+        });
+      });
+
+      // Device Selection
+      const devicePreset = document.getElementById('device-preset');
+      const customDevice = document.getElementById('custom-device-input');
+      
+      devicePreset.addEventListener('change', (e) => {
+        if (e.target.value === 'custom') {
+          customDevice.classList.remove('hidden');
+          customDevice.focus();
+          state.deviceText = customDevice.value || "Shot on Custom Camera";
+        } else {
+          customDevice.classList.add('hidden');
+          state.deviceText = e.target.value;
+        }
+        deviceLabelEl.textContent = state.deviceText;
+      });
+
+      customDevice.addEventListener('input', (e) => {
+        state.deviceText = e.target.value || "Shot on Camera";
+        deviceLabelEl.textContent = state.deviceText;
+      });
+
+      // Device Toggle
+      document.getElementById('device-toggle').addEventListener('change', (e) => {
+        state.showDevice = e.target.checked;
+        deviceBadgeEl.style.display = state.showDevice ? 'flex' : 'none';
+      });
+
+      // Date Picker & Toggle
+      datePicker.addEventListener('change', (e) => {
+        if (e.target.value) {
+          formatDateStamp(new Date(e.target.value));
+        }
+      });
+      document.getElementById('date-toggle').addEventListener('change', (e) => {
+        state.showDate = e.target.checked;
+        dateStampEl.style.display = state.showDate ? 'block' : 'none';
+      });
+
+      // Filter Buttons
+      document.querySelectorAll('.filter-opt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-opt').forEach(b => {
+            b.classList.remove('border-amber-500', 'bg-amber-50', 'font-medium');
+            b.classList.add('border-stone-200');
+          });
+          btn.classList.add('border-amber-500', 'bg-amber-50', 'font-medium');
+          btn.classList.remove('border-stone-200');
+
+          photoEl.className = photoEl.className.replace(/filter-\w+/g, '');
+          state.filter = btn.dataset.filter;
+          photoEl.classList.add(state.filter);
+        });
+      });
+
+      // Frame Color Swatches
+      document.querySelectorAll('.frame-color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.frame-color-btn').forEach(b => b.classList.remove('ring-2', 'ring-offset-2', 'ring-amber-500'));
+          btn.classList.add('ring-2', 'ring-offset-2', 'ring-amber-500');
+          state.frameColor = btn.dataset.color;
+          state.frameTextDark = btn.dataset.textDark === 'true';
+          
+          polaroidCard.style.backgroundColor = state.frameColor;
+          if (!state.frameTextDark) {
+            captionEl.style.color = '#f5f5f5';
+            deviceLabelEl.style.color = '#a3a3a3';
+            deviceBadgeEl.classList.add('border-white/10');
+          } else {
+            captionEl.style.color = state.inkColor;
+            deviceLabelEl.style.color = '#57534e';
+            deviceBadgeEl.classList.remove('border-white/10');
+          }
+        });
+      });
+
+      // Aspect Ratio Format
+      document.getElementById('format-select').addEventListener('change', (e) => {
+        state.format = e.target.value;
+        photoBox.classList.remove('aspect-square', 'aspect-[3/4]', 'aspect-[4/3]');
+        polaroidCard.classList.remove('max-w-[340px]', 'max-w-[300px]', 'max-w-[440px]');
+
+        if (state.format === 'classic') {
+          photoBox.classList.add('aspect-square');
+          polaroidCard.classList.add('max-w-[340px]');
+        } else if (state.format === 'tall') {
+          photoBox.classList.add('aspect-[3/4]');
+          polaroidCard.classList.add('max-w-[300px]');
+        } else if (state.format === 'wide') {
+          photoBox.classList.add('aspect-[4/3]');
+          polaroidCard.classList.add('max-w-[440px]');
+        }
+      });
+
+      // Tape Selector
+      document.getElementById('tape-select').addEventListener('change', (e) => {
+        state.tape = e.target.value;
+        washiTapeEl.className = "washi-tape absolute -top-3.5 left-1/2 -translate-x-1/2 w-28 h-7 z-20 transform -rotate-1 pointer-events-none";
+        
+        if (state.tape === 'none') {
+          washiTapeEl.style.display = 'none';
+        } else {
+          washiTapeEl.style.display = 'block';
+          if (state.tape === 'tape-gold') {
+            washiTapeEl.style.background = 'rgba(212, 175, 55, 0.75)';
+          } else if (state.tape === 'tape-masking') {
+            washiTapeEl.style.background = 'rgba(240, 237, 225, 0.85)';
+          } else {
+            washiTapeEl.style.background = 'rgba(235, 215, 175, 0.78)';
+          }
+        }
+      });
+    }
+
+    // Dragging Logic
+    function startDrag(e) {
+      state.isDragging = true;
+      state.startX = e.clientX - state.panX;
+      state.startY = e.clientY - state.panY;
+    }
+
+    function drag(e) {
+      if (!state.isDragging) return;
+      state.panX = e.clientX - state.startX;
+      state.panY = e.clientY - state.startY;
+      updateTransform();
+    }
+
+    function endDrag() {
+      state.isDragging = false;
+    }
+
+    function updateTransform() {
+      photoEl.style.transform = `scale(${state.zoom}) translate(${state.panX / state.zoom}px, ${state.panY / state.zoom}px)`;
+    }
+
+    function updateDOM() {
+      captionEl.textContent = state.caption;
+      deviceLabelEl.textContent = state.deviceText;
+      updateTransform();
+    }
+
+    function resetToSample() {
+      state.caption = "Golden Hour in Kyoto";
+      document.getElementById('caption-input').value = state.caption;
+      captionEl.textContent = state.caption;
+
+      state.deviceText = "Shot on iPhone 16 Pro";
+      document.getElementById('device-preset').value = state.deviceText;
+      deviceLabelEl.textContent = state.deviceText;
+
+      state.zoom = 1;
+      state.panX = 0;
+      state.panY = 0;
+      zoomSlider.value = 1;
+      zoomValEl.textContent = "100%";
+      photoEl.src = samplePhotos[0].full;
+      updateTransform();
+      showToast("Reset to default layout!");
+    }
+
+    // Toast Message
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // HIGH-RES CANVAS EXPORTER
+    async function renderToCanvas() {
+      const canvas = document.getElementById('export-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Base dimensions for crisp high-resolution print (1200 x 1480 for classic)
+      let baseWidth = 1200;
+      let photoHeight = 1000;
+      let bottomHeight = 360;
+      let totalHeight = baseWidth * 1.22; // ~1464px
+
+      if (state.format === 'tall') {
+        baseWidth = 1050;
+        photoHeight = 1150;
+        totalHeight = 1550;
+      } else if (state.format === 'wide') {
+        baseWidth = 1400;
+        photoHeight = 850;
+        totalHeight = 1250;
+      }
+
+      canvas.width = baseWidth;
+      canvas.height = totalHeight;
+
+      const paddingSide = 70;
+      const paddingTop = 70;
+      const photoWidth = baseWidth - (paddingSide * 2);
+
+      // 1. Draw Polaroid Frame Background
+      ctx.fillStyle = state.frameColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Subtle paper grain
+      ctx.fillStyle = "rgba(0,0,0,0.015)";
+      for (let i = 0; i < canvas.width; i += 6) {
+        for (let j = 0; j < canvas.height; j += 6) {
+          if ((i + j) % 12 === 0) ctx.fillRect(i, j, 3, 3);
+        }
+      }
+
+      // Frame Inner shadow border
+      ctx.strokeStyle = "rgba(0,0,0,0.08)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+      // 2. Draw Clipped Photo
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(paddingSide, paddingTop, photoWidth, photoHeight);
+      ctx.clip();
+
+      // Draw Photo Image with zoom and pan
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => {
+          // If CORS fails on cross-origin, proceed with current element
+          resolve();
+        };
+        img.src = photoEl.src;
+      });
+
+      // Apply Filter Matrix on Canvas
+      if (state.filter === 'filter-bw') {
+        ctx.filter = 'grayscale(100%) contrast(120%)';
+      } else if (state.filter === 'filter-sepia') {
+        ctx.filter = 'sepia(70%) contrast(95%)';
+      } else if (state.filter === 'filter-warm') {
+        ctx.filter = 'sepia(25%) saturate(125%) contrast(108%)';
+      } else if (state.filter === 'filter-film90') {
+        ctx.filter = 'contrast(120%) saturate(130%) hue-rotate(-8deg)';
+      } else if (state.filter === 'filter-cool') {
+        ctx.filter = 'hue-rotate(185deg) saturate(90%)';
+      } else if (state.filter === 'filter-moody') {
+        ctx.filter = 'contrast(130%) brightness(85%)';
+      }
+
+      // Calculate photo cover aspect ratio
+      const imgAspect = img.width / img.height;
+      const boxAspect = photoWidth / photoHeight;
+      let renderW, renderH, offsetX, offsetY;
+
+      if (imgAspect > boxAspect) {
+        renderH = photoHeight * state.zoom;
+        renderW = renderH * imgAspect;
+      } else {
+        renderW = photoWidth * state.zoom;
+        renderH = renderW / imgAspect;
+      }
+
+      // Map interactive pan coordinates to canvas coordinate space
+      const scaleFactor = photoWidth / photoBox.clientWidth;
+      offsetX = paddingSide + (photoWidth - renderW) / 2 + (state.panX * scaleFactor);
+      offsetY = paddingTop + (photoHeight - renderH) / 2 + (state.panY * scaleFactor);
+
+      ctx.drawImage(img, offsetX, offsetY, renderW, renderH);
+      ctx.restore();
+
+      // Photo inner vignette / subtle border
+      ctx.strokeStyle = "rgba(0,0,0,0.12)";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(paddingSide, paddingTop, photoWidth, photoHeight);
+
+      // 3. Vintage Date Stamp (Bottom Right of photo)
+      if (state.showDate) {
+        ctx.save();
+        ctx.font = "bold 34px 'Share Tech Mono', monospace";
+        ctx.fillStyle = "#ff8c00";
+        ctx.shadowColor = "rgba(0,0,0,0.7)";
+        ctx.shadowBlur = 4;
+        ctx.fillText(state.dateString, paddingSide + photoWidth - 230, paddingTop + photoHeight - 35);
+        ctx.restore();
+      }
+
+      // 4. Draw Handwritten Caption / Name
+      ctx.save();
+      const chinCenterY = paddingTop + photoHeight + ((totalHeight - (paddingTop + photoHeight)) / 2);
+      
+      let fontName = 'Caveat, cursive';
+      let fontSize = '70px';
+      if (state.fontClass === 'font-marker') {
+        fontName = '"Permanent Marker", cursive';
+        fontSize = '54px';
+      } else if (state.fontClass === 'font-indie') {
+        fontName = '"Indie Flower", cursive';
+        fontSize = '62px';
+      } else if (state.fontClass === 'font-dancing') {
+        fontName = '"Dancing Script", cursive';
+        fontSize = '68px';
+      } else if (state.fontClass === 'font-sans') {
+        fontName = 'Inter, sans-serif';
+        fontSize = '40px';
+      }
+
+      ctx.font = `${fontSize} ${fontName}`;
+      ctx.fillStyle = !state.frameTextDark ? "#ffffff" : state.inkColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(state.caption, canvas.width / 2, chinCenterY - 35);
+
+      // 5. Draw Device Badge & Label
+      if (state.showDevice) {
+        ctx.font = "500 28px Inter, sans-serif";
+        ctx.fillStyle = !state.frameTextDark ? "#9ca3af" : "#57534e";
+        ctx.fillText(`📷  ${state.deviceText}`, canvas.width / 2, chinCenterY + 45);
+      }
+      ctx.restore();
+
+      // 6. Draw Washi Tape if enabled
+      if (state.tape !== 'none') {
+        ctx.save();
+        ctx.translate(canvas.width / 2, paddingTop - 45);
+        ctx.rotate(-0.02);
+        
+        let tapeColor = 'rgba(235, 215, 175, 0.85)';
+        if (state.tape === 'tape-gold') tapeColor = 'rgba(212, 175, 55, 0.85)';
+        if (state.tape === 'tape-masking') tapeColor = 'rgba(240, 237, 225, 0.9)';
+
+        ctx.fillStyle = tapeColor;
+        ctx.fillRect(-140, 0, 280, 70);
+        ctx.restore();
+      }
+
+      return canvas;
+    }
+
+    // Download Functionality
+    async function downloadPolaroid(format = 'png') {
+      showToast("Rendering Polaroid...");
+      const canvas = await renderToCanvas();
+      
+      const link = document.createElement('a');
+      const filename = `polaroid-${state.caption.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'snap'}.${format}`;
+      link.download = filename;
+      link.href = canvas.toDataURL(format === 'jpeg' ? 'image/jpeg' : 'image/png', 0.95);
+      link.click();
+
+      showToast("Polaroid saved to downloads!");
+    }
+
+    // Copy to Clipboard (PNG blob)
+    async function copyToClipboard() {
+      try {
+        showToast("Generating image to copy...");
+        const canvas = await renderToCanvas();
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            showToast("Copied Polaroid to clipboard!");
+          } catch (err) {
+            // Fallback
+            downloadPolaroid('png');
+            showToast("Direct copy restricted; downloaded instead!");
+          }
+        }, 'image/png');
+      } catch (err) {
+        showToast("Unable to copy directly. Downloading instead.");
+        downloadPolaroid('png');
+      }
+    }
+  </script>
+</body>
+</html>
